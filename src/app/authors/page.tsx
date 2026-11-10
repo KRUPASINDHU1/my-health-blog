@@ -11,17 +11,22 @@ export const revalidate = 60;
 export default async function AuthorsPage() {
   const settings = await getSiteSettings();
 
-  const authors = await prisma.author.findMany({
-    include: {
-      _count: {
-        select: {
-          posts: { where: { status: "PUBLISHED" } },
-          reviewedPosts: { where: { status: "PUBLISHED" } },
+  let authors: any[] = [];
+  try {
+    authors = await prisma.author.findMany({
+      include: {
+        _count: {
+          select: {
+            posts: { where: { status: "PUBLISHED" } },
+            reviewedPosts: { where: { status: "PUBLISHED" } },
+          },
         },
       },
-    },
-    orderBy: { name: "asc" },
-  });
+      orderBy: { name: "asc" },
+    });
+  } catch (err) {
+    console.warn("Could not query authors during build/render:", err);
+  }
 
   return (
     <>

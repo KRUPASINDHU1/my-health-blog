@@ -1,11 +1,11 @@
-import { prisma } from "@/lib/prisma";
+import { getPage } from "@/lib/page-helper";
 import { StaticPageLayout } from "@/components/StaticPageLayout";
 import type { Metadata } from "next";
 
 export const revalidate = 60;
 
 export async function generateMetadata(): Promise<Metadata> {
-  const page = await prisma.page.findUnique({ where: { slug: "medical-disclaimer" } });
+  const page = await getPage("medical-disclaimer");
   return {
     title: page?.metaTitle || "Medical Disclaimer | Educational Healthcare Content",
     description: page?.metaDescription || "Read our formal medical disclaimer. Content is for educational purposes only and is not a substitute for professional clinical advice.",
@@ -13,7 +13,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function MedicalDisclaimerPage() {
-  const page = await prisma.page.findUnique({ where: { slug: "medical-disclaimer" } });
+  const page = await getPage("medical-disclaimer");
 
   return (
     <StaticPageLayout

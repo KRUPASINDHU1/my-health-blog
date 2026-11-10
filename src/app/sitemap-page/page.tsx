@@ -10,24 +10,37 @@ export const revalidate = 60;
 export default async function HtmlSitemapPage() {
   const settings = await getSiteSettings();
 
-  const [posts, categories, authors, pages] = await Promise.all([
-    prisma.post.findMany({
-      where: { status: "PUBLISHED" },
-      select: { id: true, title: true, slug: true, publishedAt: true },
-      orderBy: { publishedAt: "desc" },
-    }),
-    prisma.category.findMany({
-      select: { id: true, name: true, slug: true },
-      orderBy: { name: "asc" },
-    }),
-    prisma.author.findMany({
-      select: { id: true, name: true, slug: true, credentials: true },
-      orderBy: { name: "asc" },
-    }),
-    prisma.page.findMany({
-      select: { id: true, title: true, slug: true },
-    }),
-  ]);
+  let posts: any[] = [];
+  let categories: any[] = [];
+  let authors: any[] = [];
+  let pages: any[] = [];
+
+  try {
+    const res = await Promise.all([
+      prisma.post.findMany({
+        where: { status: "PUBLISHED" },
+        select: { id: true, title: true, slug: true, publishedAt: true },
+        orderBy: { publishedAt: "desc" },
+      }),
+      prisma.category.findMany({
+        select: { id: true, name: true, slug: true },
+        orderBy: { name: "asc" },
+      }),
+      prisma.author.findMany({
+        select: { id: true, name: true, slug: true, credentials: true },
+        orderBy: { name: "asc" },
+      }),
+      prisma.page.findMany({
+        select: { id: true, title: true, slug: true },
+      }),
+    ]);
+    posts = res[0];
+    categories = res[1];
+    authors = res[2];
+    pages = res[3];
+  } catch (err) {
+    console.warn("Could not query sitemap items during build/render:", err);
+  }
 
   return (
     <>

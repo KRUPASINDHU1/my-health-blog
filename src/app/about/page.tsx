@@ -1,11 +1,11 @@
-import { prisma } from "@/lib/prisma";
+import { getPage } from "@/lib/page-helper";
 import { StaticPageLayout } from "@/components/StaticPageLayout";
 import type { Metadata } from "next";
 
 export const revalidate = 60;
 
 export async function generateMetadata(): Promise<Metadata> {
-  const page = await prisma.page.findUnique({ where: { slug: "about" } });
+  const page = await getPage("about");
   return {
     title: page?.metaTitle || "About Us | Clinical Editorial Mission",
     description: page?.metaDescription || "Learn about our healthcare publication, our medical editorial board, and our commitment to evidence-based science.",
@@ -13,7 +13,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function AboutPage() {
-  const page = await prisma.page.findUnique({ where: { slug: "about" } });
+  const page = await getPage("about");
 
   return (
     <StaticPageLayout

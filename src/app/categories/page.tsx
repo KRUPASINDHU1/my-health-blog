@@ -10,14 +10,19 @@ export const revalidate = 60;
 export default async function CategoriesPage() {
   const settings = await getSiteSettings();
 
-  const categories = await prisma.category.findMany({
-    orderBy: { order: "asc" },
-    include: {
-      _count: {
-        select: { posts: { where: { status: "PUBLISHED" } } },
+  let categories: any[] = [];
+  try {
+    categories = await prisma.category.findMany({
+      orderBy: { order: "asc" },
+      include: {
+        _count: {
+          select: { posts: { where: { status: "PUBLISHED" } } },
+        },
       },
-    },
-  });
+    });
+  } catch (err) {
+    console.warn("Could not query categories during build/render:", err);
+  }
 
   return (
     <>

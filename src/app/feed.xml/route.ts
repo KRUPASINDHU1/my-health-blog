@@ -2,16 +2,23 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSiteSettings } from "@/lib/settings";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const settings = await getSiteSettings();
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
-  const posts = await prisma.post.findMany({
-    where: { status: "PUBLISHED" },
-    include: { author: true, categories: true },
-    orderBy: { publishedAt: "desc" },
-    take: 20,
-  });
+  let posts: any[] = [];
+  try {
+    posts = await prisma.post.findMany({
+      where: { status: "PUBLISHED" },
+      include: { author: true, categories: true },
+      orderBy: { publishedAt: "desc" },
+      take: 20,
+    });
+  } catch (err) {
+    console.warn("Could not query posts for feed.xml:", err);
+  }
 
   const rssItemsXml = posts
     .map((post) => {

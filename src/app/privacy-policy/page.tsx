@@ -1,11 +1,11 @@
-import { prisma } from "@/lib/prisma";
+import { getPage } from "@/lib/page-helper";
 import { StaticPageLayout } from "@/components/StaticPageLayout";
 import type { Metadata } from "next";
 
 export const revalidate = 60;
 
 export async function generateMetadata(): Promise<Metadata> {
-  const page = await prisma.page.findUnique({ where: { slug: "privacy-policy" } });
+  const page = await getPage("privacy-policy");
   return {
     title: page?.metaTitle || "Privacy Policy | GDPR, CCPA & Google AdSense",
     description: page?.metaDescription || "Our privacy policy explains how data, cookies, Google AdSense ads, and analytics are handled.",
@@ -13,7 +13,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function PrivacyPolicyPage() {
-  const page = await prisma.page.findUnique({ where: { slug: "privacy-policy" } });
+  const page = await getPage("privacy-policy");
 
   return (
     <StaticPageLayout

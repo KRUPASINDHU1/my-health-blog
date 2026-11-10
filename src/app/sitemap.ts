@@ -4,22 +4,6 @@ import { prisma } from "@/lib/prisma";
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
-  // Fetch all published posts
-  const posts = await prisma.post.findMany({
-    where: { status: "PUBLISHED" },
-    select: { slug: true, updatedAt: true },
-  });
-
-  // Fetch categories
-  const categories = await prisma.category.findMany({
-    select: { slug: true, updatedAt: true },
-  });
-
-  // Fetch authors
-  const authors = await prisma.author.findMany({
-    select: { slug: true, updatedAt: true },
-  });
-
   // Static core routes
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: `${baseUrl}`, lastModified: new Date(), changeFrequency: "daily", priority: 1.0 },
@@ -37,26 +21,46 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/sitemap-page`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.5 },
   ];
 
-  const postRoutes: MetadataRoute.Sitemap = posts.map((post) => ({
-    url: `${baseUrl}/blog/${post.slug}`,
-    lastModified: post.updatedAt,
-    changeFrequency: "weekly",
-    priority: 0.8,
-  }));
+  try {
+    // Fetch all published posts
+    const posts = await prisma.post.findMany({
+      where: { status: "PUBLISHED" },
+      select: { slug: true, updatedAt: true },
+    });
 
-  const categoryRoutes: MetadataRoute.Sitemap = categories.map((cat) => ({
-    url: `${baseUrl}/category/${cat.slug}`,
-    lastModified: cat.updatedAt,
-    changeFrequency: "weekly",
-    priority: 0.7,
-  }));
+    // Fetch categories
+    const categories = await prisma.category.findMany({
+      select: { slug: true, updatedAt: true },
+    });
 
-  const authorRoutes: MetadataRoute.Sitemap = authors.map((author) => ({
-    url: `${baseUrl}/author/${author.slug}`,
-    lastModified: author.updatedAt,
-    changeFrequency: "weekly",
-    priority: 0.7,
-  }));
+    // Fetch authors
+    const authors = await prisma.author.findMany({
+      select: { slug: true, updatedAt: true },
+    });
 
-  return [...staticRoutes, ...postRoutes, ...categoryRoutes, ...authorRoutes];
+    const postRoutes: MetadataRoute.Sitemap = posts.map((post) => ({
+      url: `${baseUrl}/blog/${post.slug}`,
+      lastModified: post.updatedAt,
+      changeFrequency: "weekly",
+      priority: 0.8,
+    }));
+
+    const categoryRoutes: MetadataRoute.Sitemap = categories.map((cat) => ({
+      url: `${baseUrl}/category/${cat.slug}`,
+      lastModified: cat.updatedAt,
+      changeFrequency: "weekly",
+      priority: 0.7,
+    }));
+
+    const authorRoutes: MetadataRoute.Sitemap = authors.map((author) => ({
+      url: `${baseUrl}/author/${author.slug}`,
+      lastModified: author.updatedAt,
+      changeFrequency: "weekly",
+      priority: 0.7,
+    }));
+
+    return [...staticRoutes, ...postRoutes, ...categoryRoutes, ...authorRoutes];
+  } catch {
+    return staticRoutes;
+  }
 }

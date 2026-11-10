@@ -51,23 +51,36 @@ export default async function BlogListingPage({ searchParams }: BlogListingPageP
     };
   }
 
-  const [totalPosts, posts, categories, tags] = await Promise.all([
-    prisma.post.count({ where }),
-    prisma.post.findMany({
-      where,
-      include: {
-        author: true,
-        reviewedBy: true,
-        categories: true,
-        tags: true,
-      },
-      orderBy: { publishedAt: "desc" },
-      skip: (currentPage - 1) * pageSize,
-      take: pageSize,
-    }),
-    prisma.category.findMany({ orderBy: { order: "asc" } }),
-    prisma.tag.findMany({ take: 10 }),
-  ]);
+  let totalPosts = 0;
+  let posts: any[] = [];
+  let categories: any[] = [];
+  let tags: any[] = [];
+
+  try {
+    const res = await Promise.all([
+      prisma.post.count({ where }),
+      prisma.post.findMany({
+        where,
+        include: {
+          author: true,
+          reviewedBy: true,
+          categories: true,
+          tags: true,
+        },
+        orderBy: { publishedAt: "desc" },
+        skip: (currentPage - 1) * pageSize,
+        take: pageSize,
+      }),
+      prisma.category.findMany({ orderBy: { order: "asc" } }),
+      prisma.tag.findMany({ take: 10 }),
+    ]);
+    totalPosts = res[0];
+    posts = res[1];
+    categories = res[2];
+    tags = res[3];
+  } catch (err) {
+    console.warn("Could not query posts during build/render:", err);
+  }
 
   const totalPages = Math.ceil(totalPosts / pageSize);
 

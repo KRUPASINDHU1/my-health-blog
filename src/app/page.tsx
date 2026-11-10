@@ -24,52 +24,58 @@ export const revalidate = 60; // ISR cache revalidation
 export default async function HomePage() {
   const settings = await getSiteSettings();
 
-  // Fetch featured post
-  const featuredPost = await prisma.post.findFirst({
-    where: { status: "PUBLISHED", isFeatured: true },
-    include: {
-      author: true,
-      reviewedBy: true,
-      categories: true,
-    },
-    orderBy: { publishedAt: "desc" },
-  });
+  // Fetch posts and categories with build-safe try/catch
+  let featuredPost = null;
+  let latestPosts: any[] = [];
+  let popularPosts: any[] = [];
+  let categories: any[] = [];
 
-  // Fetch latest posts
-  const latestPosts = await prisma.post.findMany({
-    where: {
-      status: "PUBLISHED",
-      id: featuredPost ? { not: featuredPost.id } : undefined,
-    },
-    include: {
-      author: true,
-      reviewedBy: true,
-      categories: true,
-    },
-    orderBy: { publishedAt: "desc" },
-    take: 6,
-  });
-
-  // Fetch popular posts by view count
-  const popularPosts = await prisma.post.findMany({
-    where: { status: "PUBLISHED" },
-    include: {
-      author: true,
-      categories: true,
-    },
-    orderBy: { viewsCount: "desc" },
-    take: 4,
-  });
-
-  // Fetch all active categories
-  const categories = await prisma.category.findMany({
-    orderBy: { order: "asc" },
-    include: {
-      _count: {
-        select: { posts: { where: { status: "PUBLISHED" } } },
+  try {
+    featuredPost = await prisma.post.findFirst({
+      where: { status: "PUBLISHED", isFeatured: true },
+      include: {
+        author: true,
+        reviewedBy: true,
+        categories: true,
       },
-    },
-  });
+      orderBy: { publishedAt: "desc" },
+    });
+
+    latestPosts = await prisma.post.findMany({
+      where: {
+        status: "PUBLISHED",
+        id: featuredPost ? { not: featuredPost.id } : undefined,
+      },
+      include: {
+        author: true,
+        reviewedBy: true,
+        categories: true,
+      },
+      orderBy: { publishedAt: "desc" },
+      take: 6,
+    });
+
+    popularPosts = await prisma.post.findMany({
+      where: { status: "PUBLISHED" },
+      include: {
+        author: true,
+        categories: true,
+      },
+      orderBy: { viewsCount: "desc" },
+      take: 4,
+    });
+
+    categories = await prisma.category.findMany({
+      orderBy: { order: "asc" },
+      include: {
+        _count: {
+          select: { posts: { where: { status: "PUBLISHED" } } },
+        },
+      },
+    });
+  } catch (err) {
+    console.warn("Could not query database during build/render, using empty defaults:", err);
+  }
 
   return (
     <>
