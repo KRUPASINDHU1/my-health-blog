@@ -13,6 +13,7 @@ import { ClinicalReviewBadge } from "@/components/ClinicalReviewBadge";
 import { SourcesSection } from "@/components/SourcesSection";
 import { ShareButtons } from "@/components/ShareButtons";
 import { NewsletterBox } from "@/components/NewsletterBox";
+import { ViewTracker } from "@/components/ViewTracker";
 import { extractTableOfContents, injectHeadingIds } from "@/lib/toc";
 import { sanitizePostHtml } from "@/lib/sanitize";
 import { formatDate, getBaseUrl } from "@/lib/utils";
@@ -84,12 +85,6 @@ export default async function SinglePostPage({ params }: PostPageProps) {
     notFound();
   }
 
-  // Increment view count asynchronously
-  prisma.post.update({
-    where: { id: post.id },
-    data: { viewsCount: { increment: 1 } },
-  }).catch(() => {});
-
   const settings = await getSiteSettings();
   const siteUrl = getBaseUrl();
   const postUrl = `${siteUrl}/blog/${post.slug}`;
@@ -157,6 +152,7 @@ export default async function SinglePostPage({ params }: PostPageProps) {
 
   return (
     <>
+      <ViewTracker slug={post.slug} />
       <Header siteName={settings.siteName} />
 
       {/* JSON-LD Structured Data */}
