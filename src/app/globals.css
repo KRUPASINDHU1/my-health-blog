@@ -1,0 +1,80 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    /* At least 17px readable body text with generous line spacing for clinical reading */
+    font-size: 1.0625rem;
+    line-height: 1.8;
+    color: #1e293b;
+    background-color: #ffffff;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .dark body {
+    color: #f1f5f9;
+    background-color: #0b0f17;
+  }
+}
+
+/* Custom styled prose elements */
+.prose {
+  max-width: 100% !important;
+}
+
+.prose p {
+  margin-top: 1.35em;
+  margin-bottom: 1.35em;
+  line-height: 1.85;
+}
+
+.prose h2 {
+  margin-top: 2em;
+  margin-bottom: 0.8em;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  scroll-margin-top: 5.5rem;
+}
+
+.prose h3 {
+  margin-top: 1.6em;
+  margin-bottom: 0.6em;
+  font-weight: 700;
+  scroll-margin-top: 5.5rem;
+}
+
+.prose ul, .prose ol {
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+.prose li {
+  margin-top: 0.4em;
+  margin-bottom: 0.4em;
+}
+
+.prose blockquote {
+  font-style: italic;
+  border-left-width: 4px;
+  border-left-color: #0d9488;
+  padding-left: 1.25em;
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}

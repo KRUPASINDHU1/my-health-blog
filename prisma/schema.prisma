@@ -1,0 +1,140 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         String   @default("ADMIN") // ADMIN or EDITOR
+  avatar       String?
+  bio          String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Author {
+  id             String   @id @default(cuid())
+  name           String
+  slug           String   @unique
+  credentials    String   // e.g. "MD, FACC", "PhD, Biomedical Engineering"
+  title          String   // e.g. "Cardiologist & Clinical Researcher"
+  bio            String
+  avatar         String
+  email          String?
+  socialTwitter  String?
+  socialLinkedin String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  posts          Post[]   @relation("AuthorPosts")
+  reviewedPosts  Post[]   @relation("MedicalReviewedPosts")
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  color       String   @default("#0d9488")
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  posts       Post[]
+}
+
+model Tag {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+
+  posts     Post[]
+}
+
+model Post {
+  id               String    @id @default(cuid())
+  title            String
+  slug             String    @unique
+  excerpt          String
+  content          String    // Full formatted content
+  featuredImage    String
+  featuredImageAlt String    @default("")
+  status           String    @default("PUBLISHED") // DRAFT, PUBLISHED, SCHEDULED
+  publishedAt      DateTime? @default(now())
+  readingTime      Int       @default(5)
+  viewsCount       Int       @default(0)
+  isFeatured       Boolean   @default(false)
+  
+  metaTitle        String?
+  metaDescription  String?
+  canonicalUrl     String?
+  ogImage          String?
+  sources          String?   // JSON string of references/sources: [{ title, url, citation }]
+  
+  authorId         String
+  author           Author    @relation("AuthorPosts", fields: [authorId], references: [id])
+  
+  reviewedById     String?
+  reviewedBy       Author?   @relation("MedicalReviewedPosts", fields: [reviewedById], references: [id])
+  
+  categories       Category[]
+  tags             Tag[]
+  
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+model Page {
+  id              String   @id @default(cuid())
+  slug            String   @unique
+  title           String
+  content         String
+  metaTitle       String?
+  metaDescription String?
+  updatedAt       DateTime @updatedAt
+  createdAt       DateTime @default(now())
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String
+  message   String
+  isRead    Boolean  @default(false)
+  isSpam    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Subscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  status    String   @default("ACTIVE") // ACTIVE, UNSUBSCRIBED
+  source    String   @default("website_footer")
+  createdAt DateTime @default(now())
+}
+
+model MediaItem {
+  id           String   @id @default(cuid())
+  filename     String
+  originalName String
+  url          String
+  mimeType     String
+  size         Int
+  altText      String?
+  createdAt    DateTime @default(now())
+}
+
+model SiteSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
