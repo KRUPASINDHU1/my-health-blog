@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Upload, Copy, Check, Trash2, Image as ImageIcon, Loader2 } from "lucide-react";
+import { Upload, Copy, Check, Trash2, Image as ImageIcon, Loader2, Link as LinkIcon, Plus } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 
 interface MediaItemData {
@@ -22,6 +22,10 @@ export function MediaLibrary({ initialMedia }: { initialMedia: MediaItemData[] }
   const [media, setMedia] = useState<MediaItemData[]>(initialMedia);
   const [uploading, setUploading] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [showUrlInput, setShowUrlInput] = useState(false);
+  const [imageUrl, setImageUrl] = useState("");
+  const [imageTitle, setImageTitle] = useState("");
+  const [savingUrl, setSavingUrl] = useState(false);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -44,11 +48,44 @@ export function MediaLibrary({ initialMedia }: { initialMedia: MediaItemData[] }
       } else {
         alert(data.error || "Upload failed");
       }
-    } catch {
-      alert("Error uploading media file");
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "Error uploading media file");
     } finally {
       setUploading(false);
       e.target.value = "";
+    }
+  };
+
+  const handleAddByUrl = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!imageUrl.trim()) return;
+
+    setSavingUrl(true);
+    try {
+      const res = await fetch("/api/media", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          url: imageUrl.trim(),
+          originalName: imageTitle.trim() || "External Image",
+          altText: imageTitle.trim(),
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setMedia([data.media, ...media]);
+        setImageUrl("");
+        setImageTitle("");
+        setShowUrlInput(false);
+        router.refresh();
+      } else {
+        alert(data.error || "Failed to add image URL");
+      }
+    } catch {
+      alert("Error adding image by URL");
+    } finally {
+      setSavingUrl(false);
     }
   };
 
@@ -84,10 +121,10 @@ export function MediaLibrary({ initialMedia }: { initialMedia: MediaItemData[] }
             PNG, JPG, WebP, SVG up to 10MB
           </p>
         </div>
-        <div>
+        <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
           <label className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-xs shadow transition cursor-pointer">
             <Upload className="w-4 h-4" />
-            {uploading ? "Uploading..." : "Select Image File"}
+            {uploading ? "Uploading..." : "Upload from Computer"}
             <input
               type="file"
               accept="image/*"
@@ -96,7 +133,48 @@ export function MediaLibrary({ initialMedia }: { initialMedia: MediaItemData[] }
               className="hidden"
             />
           </label>
+          <button
+            type="button"
+            onClick={() => setShowUrlInput(!showUrlInput)}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-semibold text-xs transition cursor-pointer"
+          >
+            <LinkIcon className="w-4 h-4 text-teal-400" />
+            {showUrlInput ? "Cancel URL Input" : "Add by Image URL"}
+          </button>
         </div>
+
+        {showUrlInput && (
+          <form onSubmit={handleAddByUrl} className="max-w-md mx-auto pt-3 space-y-2 text-left">
+            <div>
+              <label className="block text-[11px] font-bold text-slate-300 mb-1">Image URL *</label>
+              <input
+                type="url"
+                required
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                placeholder="https://images.unsplash.com/..."
+                className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:ring-2 focus:ring-teal-500"
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold text-slate-300 mb-1">Image Title / Description</label>
+              <input
+                type="text"
+                value={imageTitle}
+                onChange={(e) => setImageTitle(e.target.value)}
+                placeholder="Cardiovascular MRI Scan"
+                className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:ring-2 focus:ring-teal-500"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={savingUrl}
+              className="w-full py-2 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-xs transition disabled:opacity-50"
+            >
+              {savingUrl ? "Saving..." : "Save Image to Library"}
+            </button>
+          </form>
+        )}
       </div>
 
       {/* Grid */}
