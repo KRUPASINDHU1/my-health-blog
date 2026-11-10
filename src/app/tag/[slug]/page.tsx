@@ -13,34 +13,45 @@ interface TagPageProps {
 }
 
 export const revalidate = 60;
+export const dynamicParams = true;
 
 export async function generateMetadata({ params }: TagPageProps): Promise<Metadata> {
-  const { slug } = await params;
-  const tag = await prisma.tag.findUnique({ where: { slug } });
-  if (!tag) return { title: "Tag Not Found" };
+  try {
+    const { slug } = await params;
+    const tag = await prisma.tag.findUnique({ where: { slug } });
+    if (!tag) return { title: "Tag Not Found | HealthTech Spectrum" };
 
-  return {
-    title: `Articles tagged #${tag.name}`,
-    description: `Browse all medical and healthcare articles tagged with #${tag.name}.`,
-  };
+    return {
+      title: `Articles tagged #${tag.name}`,
+      description: `Browse all medical and healthcare articles tagged with #${tag.name}.`,
+    };
+  } catch {
+    return { title: "Tag | HealthTech Spectrum" };
+  }
 }
 
 export default async function TagArchivePage({ params }: TagPageProps) {
   const { slug } = await params;
-  const tag = await prisma.tag.findUnique({
-    where: { slug },
-    include: {
-      posts: {
-        where: { status: "PUBLISHED" },
-        include: {
-          author: true,
-          reviewedBy: true,
-          categories: true,
+  let tag = null;
+
+  try {
+    tag = await prisma.tag.findUnique({
+      where: { slug },
+      include: {
+        posts: {
+          where: { status: "PUBLISHED" },
+          include: {
+            author: true,
+            reviewedBy: true,
+            categories: true,
+          },
+          orderBy: { publishedAt: "desc" },
         },
-        orderBy: { publishedAt: "desc" },
       },
-    },
-  });
+    });
+  } catch (err) {
+    console.error(`Error loading tag "${slug}":`, err);
+  }
 
   if (!tag) {
     notFound();

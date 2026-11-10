@@ -6,6 +6,7 @@ import { Footer } from "@/components/Footer";
 import { PostCard } from "@/components/PostCard";
 import { AdSlot } from "@/components/AdSlot";
 import { NewsletterBox } from "@/components/NewsletterBox";
+import { HeroSearchBar } from "@/components/HeroSearchBar";
 import { MedicalDisclaimerBox } from "@/components/MedicalDisclaimerBox";
 import { getSiteSettings } from "@/lib/settings";
 import {
@@ -111,23 +112,7 @@ export default async function HomePage() {
               </p>
 
               {/* Live Search Bar */}
-              <form action="/blog" method="GET" className="relative max-w-xl mx-auto pt-2">
-                <div className="relative">
-                  <input
-                    type="search"
-                    name="q"
-                    placeholder="Search clinical topics, mRNA vaccines, cardiology, AI in healthcare..."
-                    className="w-full pl-12 pr-28 py-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-lg text-sm sm:text-base"
-                  />
-                  <Search className="w-5 h-5 text-slate-400 absolute left-4 top-4" />
-                  <button
-                    type="submit"
-                    className="absolute right-2 top-2 px-5 py-2 text-sm font-bold text-white bg-teal-600 hover:bg-teal-700 rounded-xl shadow-sm transition"
-                  >
-                    Search
-                  </button>
-                </div>
-              </form>
+              <HeroSearchBar />
 
               {/* Trust Badges (Important for E-E-A-T and AdSense) */}
               <div className="pt-4 flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-xs text-slate-500 dark:text-slate-400 font-medium">

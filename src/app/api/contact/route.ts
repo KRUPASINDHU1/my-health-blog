@@ -32,26 +32,42 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true, message: "Message received." });
     }
 
-    if (!name || !email || !subject || !message) {
+    const cleanName = typeof name === "string" ? name.trim() : "";
+    const cleanEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
+    const cleanSubject = typeof subject === "string" ? subject.trim() : "";
+    const cleanMessage = typeof message === "string" ? message.trim() : "";
+
+    if (!cleanName || !cleanEmail || !cleanSubject || !cleanMessage) {
       return NextResponse.json(
         { error: "All fields are required." },
         { status: 400 }
       );
     }
 
-    if (!email.includes("@") || !email.includes(".")) {
+    const EMAIL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)+$/;
+    if (!EMAIL_REGEX.test(cleanEmail) || cleanEmail.length > 120) {
       return NextResponse.json(
-        { error: "Please enter a valid email address." },
+        { error: "Please enter a valid email address (max 120 characters)." },
         { status: 400 }
       );
     }
 
+    if (cleanName.length > 100) {
+      return NextResponse.json({ error: "Name must not exceed 100 characters." }, { status: 400 });
+    }
+    if (cleanSubject.length > 150) {
+      return NextResponse.json({ error: "Subject must not exceed 150 characters." }, { status: 400 });
+    }
+    if (cleanMessage.length < 10 || cleanMessage.length > 3000) {
+      return NextResponse.json({ error: "Message must be between 10 and 3,000 characters." }, { status: 400 });
+    }
+
     const savedMessage = await prisma.contactMessage.create({
       data: {
-        name: name.trim(),
-        email: email.trim().toLowerCase(),
-        subject: subject.trim(),
-        message: message.trim(),
+        name: cleanName,
+        email: cleanEmail,
+        subject: cleanSubject,
+        message: cleanMessage,
         isSpam: false,
         isRead: false,
       },

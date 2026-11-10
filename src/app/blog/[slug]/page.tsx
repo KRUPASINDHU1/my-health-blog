@@ -25,61 +25,84 @@ interface PostPageProps {
 }
 
 export const revalidate = 60;
+export const dynamicParams = true;
+
+export async function generateStaticParams() {
+  try {
+    const posts = await prisma.post.findMany({
+      where: { status: "PUBLISHED" },
+      select: { slug: true },
+    });
+    return posts.map((p) => ({ slug: p.slug }));
+  } catch {
+    return [];
+  }
+}
 
 export async function generateMetadata({ params }: PostPageProps): Promise<Metadata> {
-  const { slug } = await params;
-  const post = await prisma.post.findUnique({
-    where: { slug },
-    include: { author: true, categories: true },
-  });
+  try {
+    const { slug } = await params;
+    const post = await prisma.post.findUnique({
+      where: { slug },
+      include: { author: true, categories: true },
+    });
 
-  if (!post) return { title: "Post Not Found" };
+    if (!post || post.status !== "PUBLISHED") return { title: "Article Not Found | HealthTech Spectrum" };
 
-  const settings = await getSiteSettings();
-  const url = `${getBaseUrl()}/blog/${post.slug}`;
+    const settings = await getSiteSettings();
+    const url = `${getBaseUrl()}/blog/${post.slug}`;
 
-  return {
-    title: post.metaTitle || post.title,
-    description: post.metaDescription || post.excerpt,
-    alternates: {
-      canonical: post.canonicalUrl || url,
-    },
-    openGraph: {
-      type: "article",
+    return {
       title: post.metaTitle || post.title,
       description: post.metaDescription || post.excerpt,
-      url,
-      images: [
-        {
-          url: post.ogImage || post.featuredImage,
-          alt: post.featuredImageAlt || post.title,
-        },
-      ],
-      publishedTime: post.publishedAt?.toISOString(),
-      modifiedTime: post.updatedAt?.toISOString(),
-      authors: [post.author.name],
-      section: post.categories?.[0]?.name || "Healthcare",
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: post.metaTitle || post.title,
-      description: post.metaDescription || post.excerpt,
-      images: [post.ogImage || post.featuredImage],
-    },
-  };
+      alternates: {
+        canonical: post.canonicalUrl || url,
+      },
+      openGraph: {
+        type: "article",
+        title: post.metaTitle || post.title,
+        description: post.metaDescription || post.excerpt,
+        url,
+        images: [
+          {
+            url: post.ogImage || post.featuredImage,
+            alt: post.featuredImageAlt || post.title,
+          },
+        ],
+        publishedTime: post.publishedAt?.toISOString(),
+        modifiedTime: post.updatedAt?.toISOString(),
+        authors: [post.author.name],
+        section: post.categories?.[0]?.name || "Healthcare",
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: post.metaTitle || post.title,
+        description: post.metaDescription || post.excerpt,
+        images: [post.ogImage || post.featuredImage],
+      },
+    };
+  } catch {
+    return { title: "Article | HealthTech Spectrum" };
+  }
 }
 
 export default async function SinglePostPage({ params }: PostPageProps) {
   const { slug } = await params;
-  const post = await prisma.post.findUnique({
-    where: { slug },
-    include: {
-      author: true,
-      reviewedBy: true,
-      categories: true,
-      tags: true,
-    },
-  });
+  let post = null;
+
+  try {
+    post = await prisma.post.findUnique({
+      where: { slug },
+      include: {
+        author: true,
+        reviewedBy: true,
+        categories: true,
+        tags: true,
+      },
+    });
+  } catch (err) {
+    console.error(`Error loading post for slug "${slug}":`, err);
+  }
 
   if (!post || post.status !== "PUBLISHED") {
     notFound();
@@ -102,19 +125,24 @@ export default async function SinglePostPage({ params }: PostPageProps) {
 
   // Fetch related posts from same category
   const primaryCategoryId = post.categories?.[0]?.id;
-  const relatedPosts = await prisma.post.findMany({
-    where: {
-      status: "PUBLISHED",
-      id: { not: post.id },
-      categories: primaryCategoryId ? { some: { id: primaryCategoryId } } : undefined,
-    },
-    include: {
-      author: true,
-      reviewedBy: true,
-      categories: true,
-    },
-    take: 3,
-  });
+  let relatedPosts: any[] = [];
+  try {
+    relatedPosts = await prisma.post.findMany({
+      where: {
+        status: "PUBLISHED",
+        id: { not: post.id },
+        categories: primaryCategoryId ? { some: { id: primaryCategoryId } } : undefined,
+      },
+      include: {
+        author: true,
+        reviewedBy: true,
+        categories: true,
+      },
+      take: 3,
+    });
+  } catch (err) {
+    console.warn("Could not load related posts:", err);
+  }
 
   // Schema.org MedicalWebPage JSON-LD for maximum clinical search authority
   const articleSchema = {

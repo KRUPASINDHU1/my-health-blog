@@ -20,10 +20,11 @@ export function Header({ siteName = siteConfig.name }: HeaderProps) {
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      router.push(`/blog?q=${encodeURIComponent(searchQuery.trim())}`);
-      setSearchOpen(false);
-    }
+    const clean = searchQuery.trim();
+    if (!clean) return; // Prevent dead-end submissions
+    const sanitized = encodeURIComponent(clean.slice(0, 100));
+    router.push(`/blog?q=${sanitized}`);
+    setSearchOpen(false);
   };
 
   const navLinks = [
@@ -111,14 +112,16 @@ export function Header({ siteName = siteConfig.name }: HeaderProps) {
                 type="search"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                maxLength={100}
                 placeholder="Search medical topics, clinical trials, medications, cardiology, AI..."
                 className="w-full pl-11 pr-24 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm shadow-sm"
                 autoFocus
               />
-              <Search className="w-5 h-5 text-slate-400 absolute left-3.5 top-3" />
+              <Search className="w-5 h-5 text-slate-400 absolute left-3.5 top-3 pointer-events-none" />
               <button
                 type="submit"
-                className="absolute right-2 top-2 px-3.5 py-1 text-xs font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-lg transition"
+                disabled={!searchQuery.trim()}
+                className="absolute right-2 top-2 px-3.5 py-1 text-xs font-semibold text-white bg-teal-600 hover:bg-teal-700 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg transition"
               >
                 Search
               </button>

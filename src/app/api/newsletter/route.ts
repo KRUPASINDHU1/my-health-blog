@@ -16,14 +16,15 @@ export async function POST(req: NextRequest) {
 
     const { email, source } = await req.json();
 
-    if (!email || !email.includes("@")) {
+    const EMAIL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)+$/;
+    const cleanEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
+
+    if (!cleanEmail || !EMAIL_REGEX.test(cleanEmail) || cleanEmail.length > 120) {
       return NextResponse.json(
-        { error: "A valid email address is required." },
+        { error: "A valid email address is required (max 120 characters)." },
         { status: 400 }
       );
     }
-
-    const cleanEmail = email.trim().toLowerCase();
 
     // Upsert subscriber
     const subscriber = await prisma.subscriber.upsert({

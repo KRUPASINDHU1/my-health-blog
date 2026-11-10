@@ -14,34 +14,45 @@ interface CategoryPageProps {
 }
 
 export const revalidate = 60;
+export const dynamicParams = true;
 
 export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
-  const { slug } = await params;
-  const cat = await prisma.category.findUnique({ where: { slug } });
-  if (!cat) return { title: "Category Not Found" };
+  try {
+    const { slug } = await params;
+    const cat = await prisma.category.findUnique({ where: { slug } });
+    if (!cat) return { title: "Category Not Found | HealthTech Spectrum" };
 
-  return {
-    title: `${cat.name} Articles & Research`,
-    description: cat.description || `Browse clinical articles, research updates, and innovations in ${cat.name}.`,
-  };
+    return {
+      title: `${cat.name} Articles & Research`,
+      description: cat.description || `Browse clinical articles, research updates, and innovations in ${cat.name}.`,
+    };
+  } catch {
+    return { title: "Category | HealthTech Spectrum" };
+  }
 }
 
 export default async function CategoryArchivePage({ params }: CategoryPageProps) {
   const { slug } = await params;
-  const category = await prisma.category.findUnique({
-    where: { slug },
-    include: {
-      posts: {
-        where: { status: "PUBLISHED" },
-        include: {
-          author: true,
-          reviewedBy: true,
-          categories: true,
+  let category = null;
+
+  try {
+    category = await prisma.category.findUnique({
+      where: { slug },
+      include: {
+        posts: {
+          where: { status: "PUBLISHED" },
+          include: {
+            author: true,
+            reviewedBy: true,
+            categories: true,
+          },
+          orderBy: { publishedAt: "desc" },
         },
-        orderBy: { publishedAt: "desc" },
       },
-    },
-  });
+    });
+  } catch (err) {
+    console.error(`Error loading category "${slug}":`, err);
+  }
 
   if (!category) {
     notFound();

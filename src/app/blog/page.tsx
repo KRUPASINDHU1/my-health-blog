@@ -26,16 +26,19 @@ export default async function BlogListingPage({ searchParams }: BlogListingPageP
 
   const settings = await getSiteSettings();
 
+  // Sanitize search query input
+  const cleanQ = q?.trim() ? q.trim().slice(0, 100) : undefined;
+
   // Build where conditions
   const where: any = {
     status: "PUBLISHED",
   };
 
-  if (q) {
+  if (cleanQ) {
     where.OR = [
-      { title: { contains: q } },
-      { excerpt: { contains: q } },
-      { content: { contains: q } },
+      { title: { contains: cleanQ, mode: "insensitive" } },
+      { excerpt: { contains: cleanQ, mode: "insensitive" } },
+      { content: { contains: cleanQ, mode: "insensitive" } },
     ];
   }
 
@@ -122,7 +125,9 @@ export default async function BlogListingPage({ searchParams }: BlogListingPageP
                   <input
                     type="search"
                     name="q"
-                    defaultValue={q || ""}
+                    defaultValue={cleanQ || ""}
+                    maxLength={100}
+                    autoComplete="off"
                     placeholder="Search by keywords, diagnoses, pharmaceuticals..."
                     className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-xs"
                   />

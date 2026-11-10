@@ -14,48 +14,59 @@ interface AuthorPageProps {
 }
 
 export const revalidate = 60;
+export const dynamicParams = true;
 
 export async function generateMetadata({ params }: AuthorPageProps): Promise<Metadata> {
-  const { slug } = await params;
-  const author = await prisma.author.findUnique({ where: { slug } });
-  if (!author) return { title: "Author Not Found" };
+  try {
+    const { slug } = await params;
+    const author = await prisma.author.findUnique({ where: { slug } });
+    if (!author) return { title: "Author Not Found | HealthTech Spectrum" };
 
-  return {
-    title: `${author.name} (${author.credentials}) | Clinical Bio & Articles`,
-    description: author.bio,
-    openGraph: {
-      title: `${author.name} | Medical Editorial Board`,
+    return {
+      title: `${author.name} (${author.credentials}) | Clinical Bio & Articles`,
       description: author.bio,
-      images: [{ url: author.avatar }],
-    },
-  };
+      openGraph: {
+        title: `${author.name} | Medical Editorial Board`,
+        description: author.bio,
+        images: [{ url: author.avatar }],
+      },
+    };
+  } catch {
+    return { title: "Author | HealthTech Spectrum" };
+  }
 }
 
 export default async function SingleAuthorPage({ params }: AuthorPageProps) {
   const { slug } = await params;
-  const author = await prisma.author.findUnique({
-    where: { slug },
-    include: {
-      posts: {
-        where: { status: "PUBLISHED" },
-        include: {
-          author: true,
-          reviewedBy: true,
-          categories: true,
+  let author = null;
+
+  try {
+    author = await prisma.author.findUnique({
+      where: { slug },
+      include: {
+        posts: {
+          where: { status: "PUBLISHED" },
+          include: {
+            author: true,
+            reviewedBy: true,
+            categories: true,
+          },
+          orderBy: { publishedAt: "desc" },
         },
-        orderBy: { publishedAt: "desc" },
-      },
-      reviewedPosts: {
-        where: { status: "PUBLISHED" },
-        include: {
-          author: true,
-          reviewedBy: true,
-          categories: true,
+        reviewedPosts: {
+          where: { status: "PUBLISHED" },
+          include: {
+            author: true,
+            reviewedBy: true,
+            categories: true,
+          },
+          orderBy: { publishedAt: "desc" },
         },
-        orderBy: { publishedAt: "desc" },
       },
-    },
-  });
+    });
+  } catch (err) {
+    console.error(`Error loading author "${slug}":`, err);
+  }
 
   if (!author) {
     notFound();
