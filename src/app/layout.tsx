@@ -5,12 +5,13 @@ import { CookieConsent } from "@/components/CookieConsent";
 import { AdSenseScript } from "@/components/AdSenseScript";
 import { AdSlot } from "@/components/AdSlot";
 import { getSiteSettings } from "@/lib/settings";
+import { getBaseUrl } from "@/lib/utils";
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings();
 
   return {
-    metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
+    metadataBase: new URL(getBaseUrl()),
     title: {
       default: `${settings.siteName} | ${settings.tagline}`,
       template: `%s | ${settings.siteName}`,

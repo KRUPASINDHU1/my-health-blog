@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSiteSettings } from "@/lib/settings";
+import { getBaseUrl } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   const settings = await getSiteSettings();
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const baseUrl = getBaseUrl();
 
   let posts: any[] = [];
   try {
@@ -21,9 +22,9 @@ export async function GET() {
   }
 
   const rssItemsXml = posts
-    .map((post) => {
+    .map((post: any) => {
       const pubDate = post.publishedAt ? new Date(post.publishedAt).toUTCString() : new Date().toUTCString();
-      const categoriesXml = post.categories.map((c) => `<category>${c.name}</category>`).join("");
+      const categoriesXml = (post.categories || []).map((c: any) => `<category>${c.name}</category>`).join("");
 
       return `
     <item>

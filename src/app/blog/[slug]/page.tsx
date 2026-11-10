@@ -15,7 +15,7 @@ import { ShareButtons } from "@/components/ShareButtons";
 import { NewsletterBox } from "@/components/NewsletterBox";
 import { extractTableOfContents, injectHeadingIds } from "@/lib/toc";
 import { sanitizePostHtml } from "@/lib/sanitize";
-import { formatDate } from "@/lib/utils";
+import { formatDate, getBaseUrl } from "@/lib/utils";
 import { getSiteSettings } from "@/lib/settings";
 import { Clock, Calendar, ChevronRight, Home, ShieldCheck } from "lucide-react";
 
@@ -35,7 +35,7 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
   if (!post) return { title: "Post Not Found" };
 
   const settings = await getSiteSettings();
-  const url = `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/blog/${post.slug}`;
+  const url = `${getBaseUrl()}/blog/${post.slug}`;
 
   return {
     title: post.metaTitle || post.title,
@@ -91,7 +91,7 @@ export default async function SinglePostPage({ params }: PostPageProps) {
   }).catch(() => {});
 
   const settings = await getSiteSettings();
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const siteUrl = getBaseUrl();
   const postUrl = `${siteUrl}/blog/${post.slug}`;
 
   // Process HTML content
