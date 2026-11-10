@@ -25,7 +25,7 @@ async function main() {
       email: "admin@sitename.com",
       passwordHash,
       role: "ADMIN",
-      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
+      avatar: "/uploads/krupasindhu_dinda_avatar.jpg",
       bio: "Chief Editor and Administrator passionate about health technology, science, and wellness publishing.",
     },
   });
@@ -42,18 +42,18 @@ async function main() {
     },
   });
 
-  // 3. Create 3 Demo Authors (High E-E-A-T credentials)
+  // 3. Create 3 Authors (High E-E-A-T credentials)
   const author1 = await prisma.author.create({
     data: {
-      name: "Dr. Sarah Jenkins, MD, FACC",
-      slug: "dr-sarah-jenkins",
-      credentials: "MD, FACC - Board Certified Cardiologist",
-      title: "Attending Cardiologist & Clinical Associate Professor",
-      bio: "Dr. Sarah Jenkins is an attending cardiologist and clinical researcher specializing in preventive cardiovascular medicine, hemodynamic monitoring, and metabolic syndrome. She holds a medical degree from Johns Hopkins University School of Medicine and completed her fellowship at Brigham and Women's Hospital.",
-      avatar: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=400&q=80",
-      email: "s.jenkins@sitename.com",
-      socialTwitter: "https://twitter.com/DrJenkinsHeart",
-      socialLinkedin: "https://linkedin.com/in/sarahjenkins-md",
+      name: "Mr. Krupasindhu Dinda, M.Sc. Biotech",
+      slug: "mr-krupasindhu-dinda",
+      credentials: "M.Sc. Biotech - Biotechnology & Medical Devices Specialist",
+      title: "Biotechnology Researcher & Health Tech Lead",
+      bio: "Mr. Krupasindhu Dinda is a biotechnology specialist and healthcare author focusing on clinical innovations, biomedical technology, and evidence-based health science.",
+      avatar: "/uploads/krupasindhu_dinda_avatar.jpg",
+      email: "k.dinda@sitename.com",
+      socialTwitter: "https://twitter.com/KDindaBiotech",
+      socialLinkedin: "https://linkedin.com/in/krupasindhu-dinda",
     },
   });
 
