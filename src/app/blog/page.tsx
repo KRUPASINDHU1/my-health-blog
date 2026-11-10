@@ -129,7 +129,7 @@ export default async function BlogListingPage({ searchParams }: BlogListingPageP
                     maxLength={100}
                     autoComplete="off"
                     placeholder="Search by keywords, diagnoses, pharmaceuticals..."
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-xs"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-xs [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden"
                   />
                   <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
                 </div>
