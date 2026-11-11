@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Upload, Copy, Check, Trash2, Image as ImageIcon, Loader2, Link as LinkIcon, Plus } from "lucide-react";
 import { formatDate } from "@/lib/utils";
+import { processImageForUpload, uploadImageApi } from "@/lib/client-image";
 
 interface MediaItemData {
   id: string;
@@ -32,23 +33,16 @@ export function MediaLibrary({ initialMedia }: { initialMedia: MediaItemData[] }
     if (!files || files.length === 0) return;
 
     setUploading(true);
-    const formData = new FormData();
-    formData.append("file", files[0]);
-
     try {
-      const res = await fetch("/api/media", {
-        method: "POST",
-        body: formData,
-      });
+      const file = files[0];
+      // Automatically optimize/compress image client-side before upload
+      const processed = await processImageForUpload(file);
+      const newMedia = await uploadImageApi(processed, file.name);
 
-      const data = await res.json();
-      if (res.ok) {
-        setMedia([data.media, ...media]);
-        router.refresh();
-      } else {
-        alert(data.error || "Upload failed");
-      }
+      setMedia([newMedia, ...media]);
+      router.refresh();
     } catch (err: unknown) {
+      console.error("Upload error:", err);
       alert(err instanceof Error ? err.message : "Error uploading media file");
     } finally {
       setUploading(false);
@@ -72,7 +66,14 @@ export function MediaLibrary({ initialMedia }: { initialMedia: MediaItemData[] }
         }),
       });
 
-      const data = await res.json();
+      const text = await res.text();
+      let data: any = null;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        throw new Error(`Failed to add image URL (${res.status}): ${text.slice(0, 100)}`);
+      }
+
       if (res.ok) {
         setMedia([data.media, ...media]);
         setImageUrl("");
@@ -82,8 +83,8 @@ export function MediaLibrary({ initialMedia }: { initialMedia: MediaItemData[] }
       } else {
         alert(data.error || "Failed to add image URL");
       }
-    } catch {
-      alert("Error adding image by URL");
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "Error adding image by URL");
     } finally {
       setSavingUrl(false);
     }

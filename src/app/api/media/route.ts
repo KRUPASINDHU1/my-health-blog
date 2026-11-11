@@ -25,23 +25,61 @@ export async function POST(req: NextRequest) {
 
     const contentType = req.headers.get("content-type") || "";
 
-    // Support adding media by direct URL
+    // Support adding media by direct JSON (Optimized Client-side Base64 or Image URL)
     if (contentType.includes("application/json")) {
       const body = await req.json();
-      const { url, originalName, altText } = body;
-      if (!url) return NextResponse.json({ error: "Image URL is required" }, { status: 400 });
+      const { url, originalName, altText, data, filename, mimeType, size } = body;
 
-      const mediaItem = await prisma.mediaItem.create({
-        data: {
-          filename: originalName || "remote-image",
-          originalName: originalName || "External Image",
-          url: url.trim(),
-          mimeType: "image/jpeg",
-          size: 0,
-          altText: altText || "",
-        },
-      });
-      return NextResponse.json({ success: true, media: mediaItem });
+      // Direct Base64 / Data URI upload from optimized client canvas
+      if (data && typeof data === "string") {
+        const safeName = (filename || originalName || "image.webp").replace(/[^a-zA-Z0-9.\-_]/g, "_");
+        const uniqueFilename = `${Date.now()}-${safeName}`;
+        let publicUrl = data;
+
+        // Try writing to local public/uploads directory if disk is writable
+        try {
+          const base64Data = data.includes("base64,") ? data.split("base64,")[1] : data;
+          const buffer = Buffer.from(base64Data, "base64");
+          const uploadsDir = path.join(process.cwd(), "public", "uploads");
+          await fs.mkdir(uploadsDir, { recursive: true });
+          const filePath = path.join(uploadsDir, uniqueFilename);
+          await fs.writeFile(filePath, buffer);
+          publicUrl = `/uploads/${uniqueFilename}`;
+        } catch {
+          // Read-only filesystem in serverless functions: store Data URI directly
+          publicUrl = data;
+        }
+
+        const mediaItem = await prisma.mediaItem.create({
+          data: {
+            filename: uniqueFilename,
+            originalName: originalName || filename || "Uploaded Image",
+            url: publicUrl,
+            mimeType: mimeType || "image/webp",
+            size: size || Math.round((data.length * 3) / 4),
+            altText: altText || "",
+          },
+        });
+
+        return NextResponse.json({ success: true, media: mediaItem });
+      }
+
+      // External image URL
+      if (url && typeof url === "string") {
+        const mediaItem = await prisma.mediaItem.create({
+          data: {
+            filename: originalName || "remote-image",
+            originalName: originalName || "External Image",
+            url: url.trim(),
+            mimeType: mimeType || "image/jpeg",
+            size: 0,
+            altText: altText || "",
+          },
+        });
+        return NextResponse.json({ success: true, media: mediaItem });
+      }
+
+      return NextResponse.json({ error: "Image data or URL is required" }, { status: 400 });
     }
 
     // Support file uploads

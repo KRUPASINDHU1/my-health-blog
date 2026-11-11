@@ -24,9 +24,12 @@ import {
   Quote,
   Table as TableIcon,
   Loader2,
+  Upload,
+  X,
 } from "lucide-react";
 import { calculateReadingTime } from "@/lib/reading-time";
 import { slugify } from "@/lib/utils";
+import { processImageForUpload, uploadImageApi } from "@/lib/client-image";
 
 interface CategoryOption {
   id: string;
@@ -115,6 +118,74 @@ export function PostEditor({
 
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
+
+  // Direct Image Upload & Media Picker state
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [mediaPickerOpen, setMediaPickerOpen] = useState(false);
+  const [mediaPickerTarget, setMediaPickerTarget] = useState<"featured" | "content">("featured");
+  const [mediaList, setMediaList] = useState<Array<{ id: string; url: string; originalName: string; altText?: string | null }>>([]);
+  const [loadingMedia, setLoadingMedia] = useState(false);
+
+  const fetchMediaList = async () => {
+    setLoadingMedia(true);
+    try {
+      const res = await fetch("/api/media");
+      if (res.ok) {
+        const data = await res.json();
+        setMediaList(data.media || []);
+      }
+    } catch (err) {
+      console.error("Failed to fetch media:", err);
+    } finally {
+      setLoadingMedia(false);
+    }
+  };
+
+  const openMediaPicker = (target: "featured" | "content") => {
+    setMediaPickerTarget(target);
+    setMediaPickerOpen(true);
+    fetchMediaList();
+  };
+
+  const handleDirectImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, target: "featured" | "content" = "featured") => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    const file = files[0];
+
+    setUploadingImage(true);
+    try {
+      const processed = await processImageForUpload(file);
+      const newMedia = await uploadImageApi(processed, file.name);
+
+      if (target === "featured") {
+        setFeaturedImage(newMedia.url);
+        if (!featuredImageAlt) {
+          setFeaturedImageAlt(file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " "));
+        }
+      } else {
+        insertFormatting(`<figure class="my-6">\n  <img src="${newMedia.url}" alt="${file.name.replace(/\.[^/.]+$/, "")}" class="w-full rounded-2xl shadow-md border border-slate-700/60" />\n  <figcaption class="text-xs text-slate-400 text-center mt-2">${file.name.replace(/\.[^/.]+$/, "")}</figcaption>\n</figure>\n`);
+      }
+      setFeedback({ type: "success", message: "Image uploaded and applied successfully!" });
+    } catch (err: unknown) {
+      console.error("Image upload failed:", err);
+      setFeedback({ type: "error", message: err instanceof Error ? err.message : "Image upload failed" });
+    } finally {
+      setUploadingImage(false);
+      e.target.value = "";
+    }
+  };
+
+  const handleSelectMediaItem = (item: { url: string; originalName: string; altText?: string | null }) => {
+    if (mediaPickerTarget === "featured") {
+      setFeaturedImage(item.url);
+      if (!featuredImageAlt && (item.altText || item.originalName)) {
+        setFeaturedImageAlt(item.altText || item.originalName);
+      }
+    } else {
+      insertFormatting(`<figure class="my-6">\n  <img src="${item.url}" alt="${item.altText || item.originalName}" class="w-full rounded-2xl shadow-md border border-slate-700/60" />\n  <figcaption class="text-xs text-slate-400 text-center mt-2">${item.altText || item.originalName}</figcaption>\n</figure>\n`);
+    }
+    setMediaPickerOpen(false);
+  };
 
   const readingTime = calculateReadingTime(content);
 
@@ -376,6 +447,14 @@ export function PostEditor({
               >
                 <TableIcon className="w-4 h-4" />
               </button>
+              <button
+                type="button"
+                onClick={() => openMediaPicker("content")}
+                className="p-1.5 rounded hover:bg-slate-700 hover:text-teal-300"
+                title="Insert Image into Article Content"
+              >
+                <ImageIcon className="w-4 h-4" />
+              </button>
               <span className="w-px h-4 bg-slate-700 mx-1" />
               <button
                 type="button"
@@ -546,12 +625,51 @@ export function PostEditor({
 
           {/* Featured Image */}
           <div className="p-5 rounded-2xl bg-slate-800/60 border border-slate-700/80 space-y-3">
-            <h3 className="font-bold text-xs uppercase tracking-wider text-slate-300">
-              Featured Image
-            </h3>
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-xs uppercase tracking-wider text-slate-300">
+                Featured Image
+              </h3>
+              {featuredImage && (
+                <button
+                  type="button"
+                  onClick={() => setFeaturedImage("")}
+                  className="text-[11px] text-rose-400 hover:text-rose-300 font-semibold cursor-pointer"
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+
+            {/* Direct Upload & Media Picker Actions */}
+            <div className="grid grid-cols-2 gap-2">
+              <label className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-xs text-center cursor-pointer transition shadow-sm">
+                {uploadingImage ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Upload className="w-3.5 h-3.5" />
+                )}
+                <span>{uploadingImage ? "Uploading..." : "Upload File"}</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  disabled={uploadingImage}
+                  onChange={(e) => handleDirectImageUpload(e, "featured")}
+                  className="hidden"
+                />
+              </label>
+
+              <button
+                type="button"
+                onClick={() => openMediaPicker("featured")}
+                className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-semibold text-xs text-center transition cursor-pointer"
+              >
+                <ImageIcon className="w-3.5 h-3.5 text-teal-400" />
+                <span>Media Library</span>
+              </button>
+            </div>
 
             <div>
-              <label className="block text-xs text-slate-400 mb-1">Image URL</label>
+              <label className="block text-xs text-slate-400 mb-1">Or paste Image URL</label>
               <input
                 type="url"
                 value={featuredImage}
@@ -573,9 +691,9 @@ export function PostEditor({
             </div>
 
             {featuredImage && (
-              <div className="relative aspect-[16/10] rounded-xl overflow-hidden bg-slate-900 mt-2 border border-slate-700">
+              <div className="relative aspect-[16/10] rounded-xl overflow-hidden bg-slate-900 mt-2 border border-slate-700 group">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={featuredImage} alt="Preview" className="object-cover w-full h-full" />
+                <img src={featuredImage} alt={featuredImageAlt || "Preview"} className="object-cover w-full h-full" />
               </div>
             )}
           </div>
@@ -650,6 +768,109 @@ export function PostEditor({
           </div>
         </div>
       </div>
+
+      {/* Media Picker Modal */}
+      {mediaPickerOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
+          <div className="relative w-full max-w-4xl max-h-[85vh] flex flex-col rounded-2xl bg-slate-900 border border-slate-700 shadow-2xl overflow-hidden">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-900/90">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-teal-500/20 text-teal-400 flex items-center justify-center">
+                  <ImageIcon className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm text-white">
+                    {mediaPickerTarget === "featured" ? "Select Featured Image" : "Insert Image into Article"}
+                  </h3>
+                  <p className="text-xs text-slate-400">
+                    Pick an existing image from the Media Library or upload a new one directly.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setMediaPickerOpen(false)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body: Upload shortcut & Gallery */}
+            <div className="p-6 overflow-y-auto space-y-4 flex-1">
+              <div className="flex items-center justify-between p-4 rounded-xl border border-dashed border-teal-500/40 bg-teal-950/20">
+                <div>
+                  <h4 className="text-xs font-bold text-teal-300">Upload New Image Now</h4>
+                  <p className="text-[11px] text-slate-400">
+                    Auto-compresses and attaches directly to your post.
+                  </p>
+                </div>
+                <label className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-xs cursor-pointer transition">
+                  {uploadingImage ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                  <span>{uploadingImage ? "Optimizing..." : "Upload from Device"}</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    disabled={uploadingImage}
+                    onChange={async (e) => {
+                      await handleDirectImageUpload(e, mediaPickerTarget);
+                      setMediaPickerOpen(false);
+                    }}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+
+              {loadingMedia ? (
+                <div className="py-12 flex flex-col items-center justify-center text-slate-400 gap-2">
+                  <Loader2 className="w-6 h-6 animate-spin text-teal-400" />
+                  <p className="text-xs">Loading media assets...</p>
+                </div>
+              ) : mediaList.length === 0 ? (
+                <div className="py-12 text-center text-slate-400 text-xs">
+                  No media uploaded yet. Use the upload button above to upload your first image!
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                  {mediaList.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => handleSelectMediaItem(item)}
+                      className="group relative aspect-[4/3] rounded-xl overflow-hidden bg-slate-800 border border-slate-700/80 hover:border-teal-500 transition text-left focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={item.url}
+                        alt={item.altText || item.originalName}
+                        className="object-cover w-full h-full group-hover:scale-105 transition duration-200"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition p-2 flex flex-col justify-end">
+                        <span className="text-[10px] font-semibold text-white truncate">
+                          {item.originalName}
+                        </span>
+                        <span className="text-[9px] text-teal-400 font-bold">Click to select</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-6 py-3 border-t border-slate-800 bg-slate-900 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setMediaPickerOpen(false)}
+                className="px-4 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </form>
   );
 }

@@ -2,6 +2,8 @@ import { MetadataRoute } from "next";
 import { prisma } from "@/lib/prisma";
 import { getBaseUrl } from "@/lib/utils";
 
+export const revalidate = 3600; // Revalidate sitemap periodically
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = getBaseUrl();
 
