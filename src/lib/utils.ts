@@ -36,14 +36,14 @@ export function getBaseUrl(): string {
   if (process.env.NEXT_PUBLIC_SITE_URL && !process.env.NEXT_PUBLIC_SITE_URL.includes("localhost")) {
     return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, "");
   }
-  if (process.env.URL && !process.env.URL.includes("localhost")) {
+  if (process.env.NODE_ENV === "production") {
+    return "https://healthtechspectrum.online";
+  }
+  if (process.env.URL && !process.env.URL.includes("localhost") && !process.env.URL.includes("netlify.app")) {
     return process.env.URL.replace(/\/$/, "");
   }
-  if (process.env.DEPLOY_PRIME_URL && !process.env.DEPLOY_PRIME_URL.includes("localhost")) {
+  if (process.env.DEPLOY_PRIME_URL && !process.env.DEPLOY_PRIME_URL.includes("localhost") && !process.env.DEPLOY_PRIME_URL.includes("netlify.app")) {
     return process.env.DEPLOY_PRIME_URL.replace(/\/$/, "");
-  }
-  if (process.env.NODE_ENV === "production") {
-    return "https://healthtechspectrum.netlify.app";
   }
   return "http://localhost:3000";
 }

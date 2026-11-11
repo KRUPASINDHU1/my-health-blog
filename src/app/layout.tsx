@@ -45,7 +45,7 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       type: "website",
       locale: "en_US",
-      url: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
+      url: getBaseUrl(),
       siteName: settings.siteName,
       title: `${settings.siteName} | ${settings.tagline}`,
       description: settings.description,
@@ -65,14 +65,15 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const settings = await getSiteSettings();
+  const siteUrl = getBaseUrl();
 
   const organizationSchema = {
     "@context": "https://schema.org",
     "@type": "MedicalOrganization",
     name: settings.siteName,
-    url: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
+    url: siteUrl,
     description: settings.description,
-    publishingPrinciples: `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/editorial-policy`,
+    publishingPrinciples: `${siteUrl}/editorial-policy`,
     knowsAbout: [
       "Clinical Medicine",
       "Medical Artificial Intelligence",

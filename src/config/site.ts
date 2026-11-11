@@ -11,7 +11,7 @@ export const siteConfig = {
   shortName: "HealthPulse",
   tagline: "Evidence-Based Medical Innovations, Clinical Insights & Wellness Science",
   description: "A premier peer-reviewed health publication delivering evidence-backed articles on healthcare technology, medical breakthroughs, clinical therapeutics, nutrition, and public health.",
-  url: process.env.NEXT_PUBLIC_SITE_URL || "https://healthtechspectrum.netlify.app",
+  url: process.env.NEXT_PUBLIC_SITE_URL || "https://healthtechspectrum.online",
   ogImage: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=1200&q=80",
   
   contact: {
