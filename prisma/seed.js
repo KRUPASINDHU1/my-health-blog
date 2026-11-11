@@ -18,11 +18,13 @@ async function main() {
   await prisma.contactMessage.deleteMany();
 
   // 2. Create Admin & Editor Users
-  const passwordHash = await bcrypt.hash("AdminPass123!", 10);
+  const adminEmail = (process.env.ADMIN_EMAIL || "dindakrupasindhu420@gmail.com").trim().toLowerCase();
+  const adminPassword = process.env.ADMIN_PASSWORD || "Krupa@123#987";
+  const passwordHash = await bcrypt.hash(adminPassword, 12);
   const adminUser = await prisma.user.create({
     data: {
       name: "Mr. KD",
-      email: "admin@sitename.com",
+      email: adminEmail,
       passwordHash,
       role: "ADMIN",
       avatar: "/uploads/krupasindhu_dinda_avatar.jpg",

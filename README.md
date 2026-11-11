@@ -135,13 +135,10 @@ Open **[http://localhost:3000](http://localhost:3000)** in your browser.
 
 ---
 
-## 🔐 Default Admin Credentials
-
-- **Admin Login Portal:** `http://localhost:3000/admin/login`
-- **Email:** `admin@sitename.com`
-- **Password:** `AdminPass123!`
-
-*(You can also test the first-run setup wizard by visiting `/admin/setup` if you reset the database!)*
+## 🔐 Admin Authentication
+- **Admin Login Portal:** `https://healthtechspectrum.online/admin/login` (or `http://localhost:3000/admin/login`)
+- Configurable via `ADMIN_EMAIL` and `ADMIN_PASSWORD` in your environment.
+- Passwords are encrypted using enterprise bcrypt hashing (salt rounds: 12).
 
 ---
 

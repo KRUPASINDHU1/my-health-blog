@@ -98,7 +98,7 @@ export default function AdminLoginPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@sitename.com"
+                  placeholder="editor@healthtechspectrum.online"
                   className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-700 bg-slate-800 text-white placeholder:text-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
                 />
                 <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
