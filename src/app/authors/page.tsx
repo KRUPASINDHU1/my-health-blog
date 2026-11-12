@@ -36,7 +36,7 @@ export default async function AuthorsPage() {
         <div className="max-w-3xl mb-12">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 text-xs font-semibold mb-3">
             <Stethoscope className="w-3.5 h-3.5" />
-            Clinical Editorial Board &amp; Peer Reviewers
+            Editorial Board &amp; Technical Review
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white">
             Our Medical Experts
@@ -65,7 +65,10 @@ export default async function AuthorsPage() {
                 </div>
 
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 text-[11px] font-bold mb-2">
-                  <ShieldCheck className="w-3.5 h-3.5" /> Verified Clinician
+                  <ShieldCheck className="w-3.5 h-3.5" />{" "}
+                  {author.name?.toLowerCase().includes("krupasindhu") || author.slug?.includes("krupasindhu")
+                    ? "Verified Researcher"
+                    : "Verified Clinician"}
                 </div>
 
                 <h3 className="text-xl font-bold text-slate-900 dark:text-white">

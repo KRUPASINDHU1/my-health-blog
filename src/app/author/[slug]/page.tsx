@@ -135,7 +135,9 @@ export default async function SingleAuthorPage({ params }: AuthorPageProps) {
               <div className="space-y-3 flex-1">
                 <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-100/80 dark:bg-teal-950/80 text-teal-800 dark:text-teal-300 text-xs font-bold">
                   <ShieldCheck className="w-4 h-4 text-teal-600" />
-                  Verified Medical Contributor
+                  {author.name?.toLowerCase().includes("krupasindhu") || author.slug?.includes("krupasindhu")
+                    ? "Verified Researcher"
+                    : "Verified Medical Contributor"}
                 </div>
 
                 <h1 className="text-2xl sm:text-4xl font-extrabold text-slate-900 dark:text-white">

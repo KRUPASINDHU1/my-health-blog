@@ -55,7 +55,7 @@ export function Header({ siteName = siteConfig.name }: HeaderProps) {
                 {siteName}
               </span>
               <span className="hidden sm:block text-[11px] font-medium text-teal-600 dark:text-teal-400 tracking-wide uppercase">
-                Peer-Reviewed Healthcare Journal
+                Biomedical Technology &amp; Insights
               </span>
             </div>
           </Link>

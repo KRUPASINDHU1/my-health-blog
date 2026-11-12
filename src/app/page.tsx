@@ -108,7 +108,7 @@ export default async function HomePage() {
               </h1>
 
               <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed max-w-2xl mx-auto">
-                Discover actionable medical research, clinical pharmacology breakthroughs, circadian science, and health technology curated by licensed physicians.
+                Discover actionable medical research, clinical pharmacology breakthroughs, circadian science, and health technology curated by biotechnology and medical device specialists.
               </p>
 
               {/* Live Search Bar */}
@@ -118,15 +118,15 @@ export default async function HomePage() {
               <div className="pt-4 flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-xs text-slate-500 dark:text-slate-400 font-medium">
                 <span className="flex items-center gap-1.5">
                   <ShieldCheck className="w-4 h-4 text-teal-600" />
-                  Board-Certified Physician Review
+                  Expert Device &amp; Technical Analysis
                 </span>
                 <span className="flex items-center gap-1.5">
                   <BookOpen className="w-4 h-4 text-teal-600" />
-                  Peer-Reviewed Citations
+                  Evidence-Based Literature
                 </span>
                 <span className="flex items-center gap-1.5">
                   <Stethoscope className="w-4 h-4 text-teal-600" />
-                  Evidence-Based Medicine
+                  Rigorous Technical Review
                 </span>
               </div>
             </div>
