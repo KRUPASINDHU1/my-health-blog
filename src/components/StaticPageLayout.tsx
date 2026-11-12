@@ -2,7 +2,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { getSiteSettings } from "@/lib/settings";
 import { formatDate } from "@/lib/utils";
-import { AlertCircle, FileText, ChevronRight, Home } from "lucide-react";
+import { FileText, ChevronRight, Home } from "lucide-react";
 import Link from "next/link";
 
 interface StaticPageLayoutProps {
@@ -57,15 +57,6 @@ export async function StaticPageLayout({
         </section>
 
         <div className="max-w-4xl mx-auto px-4 sm:px-6 mt-10">
-          {isLegalTemplate && (
-            <div className="p-4 rounded-xl bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/80 text-blue-900 dark:text-blue-200 text-xs leading-relaxed flex items-start gap-3 mb-8">
-              <AlertCircle className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
-              <div>
-                <strong>Legal Review Notice:</strong> This document is a comprehensive template provided for informational publication. While drafted to align with Google AdSense policy benchmarks, GDPR, CCPA, and Indian DPDP guidelines, website owners should consult with legal counsel to adapt terms to their exact entity structure and jurisdiction.
-              </div>
-            </div>
-          )}
-
           <div
             className="prose dark:prose-invert prose-teal max-w-none prose-headings:text-slate-900 dark:prose-headings:text-white prose-p:text-slate-700 dark:prose-p:text-slate-300"
             dangerouslySetInnerHTML={{ __html: content }}

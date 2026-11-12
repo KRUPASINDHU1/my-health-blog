@@ -21,7 +21,6 @@ export default async function PrivacyPolicyPage() {
       slug="privacy-policy"
       content={page?.content || ""}
       updatedAt={page?.updatedAt}
-      isLegalTemplate={true}
     />
   );
 }
