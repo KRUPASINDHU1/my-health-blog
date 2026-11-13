@@ -1,7 +1,9 @@
 import { PrismaClient } from "@prisma/client";
 
 // Ensure DATABASE_URL is set so build-time static generation does not crash if env var is missing
-if (!process.env.DATABASE_URL) {
+if (!process.env.DATABASE_URL && process.env.DATABASE_URL_POOLED) {
+  process.env.DATABASE_URL = process.env.DATABASE_URL_POOLED;
+} else if (!process.env.DATABASE_URL) {
   process.env.DATABASE_URL = "postgresql://dummy:dummy@localhost:5432/dummy?sslmode=disable";
 }
 
