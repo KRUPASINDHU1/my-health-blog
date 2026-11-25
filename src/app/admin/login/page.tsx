@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Activity, Lock, Mail, AlertCircle, Loader2, Sparkles, ArrowRight } from "lucide-react";
+import { safeParseResponse } from "@/lib/utils";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -16,9 +17,9 @@ export default function AdminLoginPage() {
   useEffect(() => {
     // Check if first-run setup is required
     fetch("/api/auth/setup")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.setupNeeded) {
+      .then((res) => safeParseResponse(res))
+      .then(({ ok, data }) => {
+        if (ok && data.setupNeeded) {
           setNeedsSetup(true);
         }
       })
@@ -37,8 +38,8 @@ export default function AdminLoginPage() {
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await res.json();
-      if (!res.ok) {
+      const { ok, data } = await safeParseResponse(res);
+      if (!ok) {
         throw new Error(data.error || "Login failed.");
       }
 

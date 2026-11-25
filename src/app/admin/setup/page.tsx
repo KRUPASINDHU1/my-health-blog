@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Activity, ShieldCheck, User, Mail, Lock, AlertCircle, Loader2 } from "lucide-react";
+import { safeParseResponse } from "@/lib/utils";
 
 export default function AdminSetupPage() {
   const router = useRouter();
@@ -15,9 +16,9 @@ export default function AdminSetupPage() {
 
   useEffect(() => {
     fetch("/api/auth/setup")
-      .then((res) => res.json())
-      .then((data) => {
-        if (!data.setupNeeded) {
+      .then((res) => safeParseResponse(res))
+      .then(({ ok, data }) => {
+        if (ok && !data.setupNeeded) {
           setStatus("locked");
         }
       })
@@ -42,8 +43,8 @@ export default function AdminSetupPage() {
         body: JSON.stringify({ name, email, password }),
       });
 
-      const data = await res.json();
-      if (!res.ok) {
+      const { ok, data } = await safeParseResponse(res);
+      if (!ok) {
         throw new Error(data.error || "Setup failed.");
       }
 

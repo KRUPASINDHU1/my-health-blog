@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Save, CheckCircle2, AlertCircle, DollarSign, Globe, Shield, Loader2 } from "lucide-react";
+import { safeParseResponse } from "@/lib/utils";
 import { ResolvedSiteSettings } from "@/lib/settings";
 
 export function SettingsManager({ initialSettings }: { initialSettings: ResolvedSiteSettings }) {
@@ -61,8 +62,8 @@ export function SettingsManager({ initialSettings }: { initialSettings: Resolved
         body: JSON.stringify(payload),
       });
 
-      const data = await res.json();
-      if (res.ok) {
+      const { ok, data } = await safeParseResponse(res);
+      if (ok) {
         setFeedback({ type: "success", message: "Site & AdSense settings saved and applied!" });
         router.refresh();
       } else {

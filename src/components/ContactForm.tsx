@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Send, CheckCircle2, AlertCircle, Loader2, X } from "lucide-react";
+import { safeParseResponse } from "@/lib/utils";
 
 const EMAIL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)+$/;
 
@@ -83,8 +84,8 @@ export function ContactForm() {
         }),
       });
 
-      const data = await res.json();
-      if (!res.ok) {
+      const { ok, data } = await safeParseResponse(res);
+      if (!ok) {
         throw new Error(data.error || "Failed to submit message. Please try again.");
       }
 

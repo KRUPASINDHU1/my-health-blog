@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Trash2, Edit, Check, X, FolderTree, Tag as TagIcon, Loader2 } from "lucide-react";
+import { safeParseResponse } from "@/lib/utils";
 
 interface CategoryItem {
   id: string;
@@ -57,12 +58,14 @@ export function CategoryTagManager({ initialCategories, initialTags }: Props) {
           color: newCatColor,
         }),
       });
-      const data = await res.json();
-      if (res.ok) {
+      const { ok, data } = await safeParseResponse(res);
+      if (ok && data.category) {
         setCategories([...categories, { ...data.category, _count: { posts: 0 } }]);
         setNewCatName("");
         setNewCatDesc("");
         router.refresh();
+      } else {
+        alert(data.error || "Failed to add category");
       }
     } catch {
       alert("Error adding category");
@@ -97,11 +100,13 @@ export function CategoryTagManager({ initialCategories, initialTags }: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: newTagName.trim() }),
       });
-      const data = await res.json();
-      if (res.ok) {
+      const { ok, data } = await safeParseResponse(res);
+      if (ok && data.tag) {
         setTags([...tags, { ...data.tag, _count: { posts: 0 } }]);
         setNewTagName("");
         router.refresh();
+      } else {
+        alert(data.error || "Failed to add tag");
       }
     } catch {
       alert("Error adding tag");

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Files, Save, CheckCircle2, AlertCircle, ExternalLink, Loader2 } from "lucide-react";
+import { safeParseResponse } from "@/lib/utils";
 
 interface PageItem {
   id: string;
@@ -58,8 +59,8 @@ export function PagesManager({ initialPages }: { initialPages: PageItem[] }) {
         }),
       });
 
-      const data = await res.json();
-      if (res.ok) {
+      const { ok, data } = await safeParseResponse(res);
+      if (ok) {
         setPages(pages.map((p) => (p.slug === selectedSlug ? data.page : p)));
         setFeedback({ type: "success", message: "Page content updated and live!" });
         router.refresh();

@@ -28,7 +28,7 @@ import {
   X,
 } from "lucide-react";
 import { calculateReadingTime } from "@/lib/reading-time";
-import { slugify } from "@/lib/utils";
+import { slugify, safeParseResponse } from "@/lib/utils";
 import { processImageForUpload, uploadImageApi } from "@/lib/client-image";
 
 interface CategoryOption {
@@ -130,8 +130,8 @@ export function PostEditor({
     setLoadingMedia(true);
     try {
       const res = await fetch("/api/media");
-      if (res.ok) {
-        const data = await res.json();
+      const { ok, data } = await safeParseResponse(res);
+      if (ok && data.media) {
         setMediaList(data.media || []);
       }
     } catch (err) {
@@ -263,8 +263,8 @@ export function PostEditor({
         body: JSON.stringify(payload),
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to save post.");
+      const { ok, data } = await safeParseResponse(res);
+      if (!ok) throw new Error(data.error || "Failed to save post.");
 
       setFeedback({ type: "success", message: "Post saved successfully!" });
       setTimeout(() => {

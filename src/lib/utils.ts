@@ -47,3 +47,20 @@ export function getBaseUrl(): string {
   }
   return "http://localhost:3000";
 }
+
+export async function safeParseResponse<T = any>(res: Response): Promise<{ ok: boolean; status: number; data: T }> {
+  const text = await res.text();
+  let data: any = {};
+  if (text && text.trim().length > 0) {
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = { error: text.slice(0, 150) };
+    }
+  }
+  return {
+    ok: res.ok,
+    status: res.status,
+    data,
+  };
+}

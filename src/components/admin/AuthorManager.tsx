@@ -4,6 +4,8 @@ import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Users, Plus, Trash2, Edit, ShieldCheck, Mail, Twitter, Linkedin, Loader2, X, CheckCircle2, AlertCircle, Upload } from "lucide-react";
+import { safeParseResponse } from "@/lib/utils";
+import { processImageForUpload, uploadImageApi } from "@/lib/client-image";
 
 interface AuthorItem {
   id: string;
@@ -48,21 +50,14 @@ export function AuthorManager({ initialAuthors }: { initialAuthors: AuthorItem[]
     setUploadingAvatar(true);
     setFeedback(null);
     try {
-      const data = new FormData();
-      data.append("file", file);
-      data.append("altText", `Avatar for ${formData.name || "author"}`);
+      const processed = await processImageForUpload(file);
+      const mediaItem = await uploadImageApi(processed, `Avatar for ${formData.name || "author"}`);
 
-      const res = await fetch("/api/media", {
-        method: "POST",
-        body: data,
-      });
-
-      const json = await res.json();
-      if (res.ok && json.media?.url) {
-        setFormData((prev) => ({ ...prev, avatar: json.media.url }));
+      if (mediaItem?.url) {
+        setFormData((prev) => ({ ...prev, avatar: mediaItem.url }));
         setFeedback({ type: "success", message: "Photo uploaded and avatar updated successfully!" });
       } else {
-        throw new Error(json.error || "Failed to upload photo.");
+        throw new Error("Failed to upload photo: empty media URL");
       }
     } catch (err: unknown) {
       setFeedback({ type: "error", message: err instanceof Error ? err.message : "Upload failed" });
@@ -122,8 +117,8 @@ export function AuthorManager({ initialAuthors }: { initialAuthors: AuthorItem[]
         body: JSON.stringify(formData),
       });
 
-      const data = await res.json();
-      if (res.ok) {
+      const { ok, data } = await safeParseResponse(res);
+      if (ok && data.author) {
         setAuthors([...authors, { ...data.author, _count: { posts: 0, reviewedPosts: 0 } }]);
         setShowCreateForm(false);
         setFeedback({ type: "success", message: `Author "${data.author.name}" created successfully!` });
@@ -152,8 +147,8 @@ export function AuthorManager({ initialAuthors }: { initialAuthors: AuthorItem[]
         body: JSON.stringify(formData),
       });
 
-      const data = await res.json();
-      if (res.ok) {
+      const { ok, data } = await safeParseResponse(res);
+      if (ok && data.author) {
         setAuthors(
           authors.map((a) =>
             a.id === editingAuthor.id
@@ -184,9 +179,9 @@ export function AuthorManager({ initialAuthors }: { initialAuthors: AuthorItem[]
     setFeedback(null);
     try {
       const res = await fetch(`/api/authors/${author.id}`, { method: "DELETE" });
-      const data = await res.json();
+      const { ok, data } = await safeParseResponse(res);
 
-      if (res.ok) {
+      if (ok) {
         setAuthors(authors.filter((a) => a.id !== author.id));
         setFeedback({ type: "success", message: `Author "${author.name}" deleted successfully.` });
         router.refresh();
